@@ -1,0 +1,6 @@
+:8000 {
+	root * /var/www/html/public
+	php_fastcgi unix//run/php/php8.3-fpm.sock
+	encode gzip
+	file_server
+}
