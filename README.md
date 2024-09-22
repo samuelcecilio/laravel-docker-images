@@ -2,12 +2,12 @@
 
 ## PHP-FPM
 ```bash
-docker build -t enztecnologia/php-fpm:latest ./php-fpm
-docker push enztecnologia/php-fpm:latest
+docker build -t samuelcecilio/php-fpm:latest ./php-fpm
+docker push samuelcecilio/php-fpm:latest
 ```
 
 ## Swoole
 ```bash
-docker build -t enztecnologia/swoole:latest ./swoole
-docker push enztecnologia/swoole:latest
+docker build -t samuelcecilio/swoole:latest ./swoole
+docker push samuelcecilio/swoole:latest
 ```
