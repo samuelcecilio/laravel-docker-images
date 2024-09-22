@@ -14,8 +14,8 @@ RUN mkdir -p /etc/apt/keyrings \
     && apt-get update && apt-get install -y caddy \
         php8.3-bcmath php8.3-cli php8.3-curl php8.3-fpm php8.3-gd \
         php8.3-igbinary php8.3-intl php8.3-mbstring php8.3-msgpack \
-        php8.3-mysql php8.3-readline php8.3-redis php8.3-xml php8.3-zip \
-        php8.3-zstd php8.3-pcov php8.3-xdebug \
+        php8.3-mysql php8.3-pgsql php8.3-readline php8.3-redis php8.3-xml \
+        php8.3-zip php8.3-zstd php8.3-pcov php8.3-xdebug \
     && curl -sLS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer \
     && apt-get -y autoremove && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
