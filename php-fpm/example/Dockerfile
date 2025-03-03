@@ -34,10 +34,15 @@ FROM base AS local
 
 RUN git config --global --add safe.directory /var/www/html
 
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update && apt-get install -y nodejs \
+    && apt-get -y autoremove && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 EXPOSE 8000
 EXPOSE 5173
 
-ENTRYPOINT ["sh", "/var/www/html/docker/entrypoint.local.sh"]
+ENTRYPOINT ["sh", "/var/www/html/docker/entrypoint.sh"]
 
 FROM node:20-alpine as assets
 
@@ -57,10 +62,11 @@ RUN npm run build
 
 FROM base AS production
 
+# fix: JIT is incompatible with third party extensions that override zend_execute_ex().
+RUN apt remove php8.4-pcov php8.4-xdebug -y
+
 COPY --from=assets --chown=laravel:laravel /app/public /var/www/html/public
 
 EXPOSE 8000
-
-USER laravel
 
 ENTRYPOINT ["sh", "/var/www/html/docker/entrypoint.sh"]
