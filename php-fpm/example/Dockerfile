@@ -8,10 +8,11 @@ ARG GROUP_ID=1000
 ENV PHP_MEMORY_LIMIT=512M \
     COMPOSER_MEMORY_LIMIT=512M
 
-RUN groupadd --force -g $GROUP_ID laravel
-RUN useradd -ms /bin/bash --no-user-group -g laravel -G www-data -u $USER_ID laravel
-RUN echo "laravel ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/laravel
-RUN mkdir -p /run/php && chown laravel:laravel /run/php
+RUN userdel -r ubuntu \
+    && groupadd --force -g $GROUP_ID laravel \
+    && useradd -ms /bin/bash --no-user-group -g laravel -G www-data -u $USER_ID laravel \
+    && echo "laravel ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/laravel \
+    && mkdir -p /run/php && chown laravel:laravel /run/php
 
 COPY ./docker/php.ini /etc/php/8.4/cli/conf.d/99-laravel.ini
 COPY ./docker/www.conf /etc/php/8.4/fpm/pool.d/www.conf
