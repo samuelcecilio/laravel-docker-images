@@ -3,7 +3,7 @@ FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -yqq && apt-get install -y \
-    ca-certificates curl dnsutils fswatch git gnupg gosu htop libcap2-bin \
+    ca-certificates curl dnsutils fswatch git gnupg htop libcap2-bin \
     mysql-client sudo supervisor unzip zip
 
 RUN mkdir -p /etc/apt/keyrings \
