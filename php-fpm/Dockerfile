@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -yqq && apt-get install -y \
     ca-certificates curl dnsutils fswatch git gnupg htop libcap2-bin \
-    mysql-client sudo supervisor unzip zip
+    mysql-client supervisor unzip zip
 
 RUN mkdir -p /etc/apt/keyrings \
     && curl -sS 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x14aa40ec0831756756d7f66c4f4ea0aae5267a6c' | gpg --dearmor | tee /etc/apt/keyrings/ppa_ondrej_php.gpg > /dev/null \
