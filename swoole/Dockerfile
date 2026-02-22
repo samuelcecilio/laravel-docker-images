@@ -11,6 +11,8 @@ RUN mkdir -p /etc/apt/keyrings \
     && echo "deb [signed-by=/etc/apt/keyrings/ppa_ondrej_php.gpg] https://ppa.launchpadcontent.net/ondrej/php/ubuntu noble main" > /etc/apt/sources.list.d/ppa_ondrej_php.list \
     && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
     && curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list \
+    && chmod o+r /usr/share/keyrings/caddy-stable-archive-keyring.gpg \
+    && chmod o+r /etc/apt/sources.list.d/caddy-stable.list \
     && apt-get update && apt-get install -y caddy \
         php8.4-bcmath php8.4-cli php8.4-curl php8.4-gd php8.4-igbinary \
         php8.4-intl php8.4-mbstring php8.4-msgpack php8.4-mysql php8.4-pgsql \

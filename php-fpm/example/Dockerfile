@@ -33,9 +33,8 @@ FROM base AS local
 
 RUN git config --global --add safe.directory /var/www/html
 
-RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
-    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
-    && apt-get update && apt-get install -y nodejs \
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs \
     && apt-get -y autoremove && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 EXPOSE 8000
@@ -43,7 +42,7 @@ EXPOSE 5173
 
 ENTRYPOINT ["sh", "/var/www/html/docker/entrypoint.sh"]
 
-FROM node:20-alpine as assets
+FROM node:22-alpine as assets
 
 ARG VITE_APP_NAME
 
