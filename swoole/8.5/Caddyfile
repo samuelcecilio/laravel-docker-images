@@ -1,0 +1,24 @@
+:8000 {
+	root * /var/www/html/public
+	encode gzip
+	file_server
+
+	@octane {
+		path /index.php*
+    }
+
+	handle @octane {
+		reverse_proxy 127.0.0.1:8000 {
+			header_up Host {host}
+			header_up X-Real-IP {remote}
+			header_up X-Forwarded-For {remote}
+			header_up X-Forwarded-Proto {scheme}
+			header_up Upgrade {>Upgrade}
+			header_up Connection {>Connection}
+		}
+	}
+
+	handle {
+		try_files {path} {path}/ /index.php?{query}
+	}
+}
