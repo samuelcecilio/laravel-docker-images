@@ -164,6 +164,19 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  # Fixed-name check for the branch ruleset: the build job names depend on the matrix
+  ci:
+    needs: [matrix, build]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - env:
+          MATRIX: ${{ needs.matrix.result }}
+          BUILD: ${{ needs.build.result }}
+        run: |
+          echo "matrix=$MATRIX build=$BUILD"
+          [ "$MATRIX" = success ] && { [ "$BUILD" = success ] || [ "$BUILD" = skipped ]; }
+
   merge:
     needs: [matrix, build]
     if: github.event_name != 'pull_request' && needs.matrix.outputs.targets != '[]'
