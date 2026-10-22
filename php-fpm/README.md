@@ -19,6 +19,6 @@ See the [root README](../README.md) for the other commands.
 ## Example
 
 [`example/`](example/) contains a complete Laravel project (multi-stage Dockerfile
-with `local`/`production` targets, `docker-compose.yml` with MySQL, Redis, MinIO and
+with `local`/`production` targets, `docker-compose.yml` with MySQL, Redis, RustFS and
 Mailpit). It is pinned to **8.4**: update the `FROM` line and the `/etc/php/8.x/`
 paths to use another version.
