@@ -4,16 +4,16 @@ registry  := "samuelcecilio"
 platforms := "linux/amd64,linux/arm64"
 images    := "php-fpm swoole"
 
-# versão que também recebe a tag :latest
+# version that also gets the :latest tag
 latest := "8.5"
 
-# aceita build com working tree suja: `just dirty=1 push`
+# allow publishing from a dirty working tree: `just dirty=1 push`
 dirty := "0"
 
 _default:
     @just --list --unsorted
 
-# Mostra as imagens/versões existentes e as tags que seriam publicadas
+# List existing images/versions and the tags that would be published
 info:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -29,7 +29,7 @@ info:
         done
     done
 
-# Build local multi-arch (amd64 + arm64) para testar, sem publicar. Sem args, builda tudo
+# Local multi-arch build (amd64 + arm64) for testing, without publishing. No args builds everything
 build image="all" version="all":
     #!/usr/bin/env bash
     set -euo pipefail
@@ -41,7 +41,7 @@ build image="all" version="all":
         done
     done
 
-# Build multi-arch + push pro Docker Hub. Sem args, publica tudo
+# Multi-arch build + push to Docker Hub. No args publishes everything
 push image="all" version="all":
     #!/usr/bin/env bash
     set -euo pipefail
@@ -51,21 +51,21 @@ push image="all" version="all":
             just _clean
             echo "==> push {{registry}}/$img:$v [{{platforms}}]"
             docker buildx build --platform {{platforms}} --pull --push $(just _tag_args "$img" "$v") "$img/$v"
-            just _tag_args "$img" "$v" | tr ' ' '\n' | grep -v '^-t$' | sed 's/^/    publicado: /'
+            just _tag_args "$img" "$v" | tr ' ' '\n' | grep -v '^-t$' | sed 's/^/    published: /'
         done
     done
 
-# Cria uma versão nova copiando de outra (ex: just new 8.6 8.5)
+# Create a new version by copying another one (e.g. just new 8.6 8.5)
 new version from=latest:
     #!/usr/bin/env bash
     set -euo pipefail
     for img in {{images}}; do
         if [ ! -d "$img/{{from}}" ]; then
-            echo "erro: $img/{{from}} não existe" >&2
+            echo "error: $img/{{from}} does not exist" >&2
             exit 1
         fi
         if [ -d "$img/{{version}}" ]; then
-            echo "erro: $img/{{version}} já existe" >&2
+            echo "error: $img/{{version}} already exists" >&2
             exit 1
         fi
         mkdir -p "$img/{{version}}"
@@ -73,23 +73,23 @@ new version from=latest:
         for f in "$img/{{from}}"/*; do
             sed "s/$old/{{version}}/g" "$f" > "$img/{{version}}/$(basename "$f")"
         done
-        echo "criado $img/{{version}} (a partir de {{from}})"
+        echo "created $img/{{version}} (from {{from}})"
     done
     echo
-    echo "revise os arquivos e atualize 'latest' no justfile se for o caso."
+    echo "review the files and update 'latest' in the justfile if needed."
 
-# Login no Docker Hub
+# Log in to Docker Hub
 login:
     docker login -u {{registry}}
 
-# --- internos ---------------------------------------------------------------
+# --- internal ------------------------------------------------------------------
 
-# Resolve "all" para a lista de imagens
+# Resolve "all" to the list of images
 [private]
 _targets image:
     @[ "{{image}}" = "all" ] && echo "{{images}}" || echo "{{image}}"
 
-# Resolve "all" para as versões existentes da imagem
+# Resolve "all" to the existing versions of the image
 [private]
 _versions image version:
     #!/usr/bin/env bash
@@ -101,7 +101,7 @@ _versions image version:
             -exec basename {} \; | sort -V
     fi
 
-# Argumentos -t para o buildx
+# -t arguments for buildx
 [private]
 _tag_args image version:
     #!/usr/bin/env bash
@@ -110,28 +110,28 @@ _tag_args image version:
     [ "{{version}}" = "{{latest}}" ] && args="$args -t {{registry}}/{{image}}:latest"
     echo "$args"
 
-# Exige working tree limpa — só antes de publicar, build local não precisa
+# Require a clean working tree; only before publishing, local builds do not need it
 [private]
 _clean:
     #!/usr/bin/env bash
     set -euo pipefail
     if [ "{{dirty}}" != "1" ] && [ -n "$(git status --porcelain)" ]; then
-        echo "erro: working tree suja, não vou publicar. Commite ou rode 'just dirty=1 push ...'" >&2
+        echo "error: dirty working tree, refusing to publish. Commit first or run 'just dirty=1 push ...'" >&2
         exit 1
     fi
 
-# Garante que a pasta existe e que o Dockerfile bate com a versão da pasta
+# Ensure the directory exists and the Dockerfile matches the directory version
 [private]
 _guard image version:
     #!/usr/bin/env bash
     set -euo pipefail
     if [ ! -f "{{image}}/{{version}}/Dockerfile" ]; then
-        echo "erro: {{image}}/{{version}}/Dockerfile não existe" >&2
-        echo "      imagens: {{images}} | versões: $(just _versions {{image}} all 2>/dev/null | tr '\n' ' ')" >&2
+        echo "error: {{image}}/{{version}}/Dockerfile does not exist" >&2
+        echo "       images: {{images}} | versions: $(just _versions {{image}} all 2>/dev/null | tr '\n' ' ')" >&2
         exit 1
     fi
     declared=$(grep -oE 'php8\.[0-9]+' "{{image}}/{{version}}/Dockerfile" | head -1 | sed 's/^php//')
     if [ "$declared" != "{{version}}" ]; then
-        echo "erro: {{image}}/{{version}}/Dockerfile instala php $declared, não {{version}}" >&2
+        echo "error: {{image}}/{{version}}/Dockerfile installs php $declared, not {{version}}" >&2
         exit 1
     fi

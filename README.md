@@ -1,70 +1,73 @@
 # Laravel Docker Images
 
-Imagens base para aplicações Laravel, versionadas por versão do PHP.
+Base images for Laravel applications, versioned by PHP version.
 
-## Estrutura
+## Layout
 
 ```
 php-fpm/
-  8.3/  8.4/  8.5/     # Dockerfile + Caddyfile por versão
-  example/             # projeto de exemplo (Laravel + docker compose)
+  8.3/  8.4/  8.5/     # Dockerfile + Caddyfile per version
+  example/             # example project (Laravel + docker compose)
 swoole/
   8.3/  8.4/  8.5/
 ```
 
-Cada pasta de versão é independente — a `8.3` roda em `ubuntu:22.04`, as demais em
-`ubuntu:24.04`. Atualizar uma versão nunca afeta as outras.
+Each version directory is independent: `8.3` runs on `ubuntu:22.04`, the others on
+`ubuntu:24.04`. Updating one version never affects the others.
 
-## Tags publicadas
+## Published tags
 
-| Pasta | Tags no Docker Hub |
+| Directory | Docker Hub tags |
 | --- | --- |
-| `<imagem>/8.3` | `samuelcecilio/<imagem>:8.3` |
-| `<imagem>/8.4` | `samuelcecilio/<imagem>:8.4` |
-| `<imagem>/8.5` | `samuelcecilio/<imagem>:8.5` + `:latest` |
+| `<image>/8.3` | `samuelcecilio/<image>:8.3` |
+| `<image>/8.4` | `samuelcecilio/<image>:8.4` |
+| `<image>/8.5` | `samuelcecilio/<image>:8.5` + `:latest` |
 
-A versão que recebe a tag `latest` é a variável `latest` no [`justfile`](justfile).
+The version that gets the `latest` tag is set by the `latest` variable in the
+[`justfile`](justfile).
 
-## Comandos
+## Commands
 
-Requer [`just`](https://github.com/casey/just) e `docker buildx`.
+Requires [`just`](https://github.com/casey/just) and `docker buildx`.
 
 ```bash
-just info                 # mostra imagens, versões e as tags que seriam publicadas
-just build php-fpm 8.5    # build local multi-arch (amd64 + arm64) para testar
-just push                 # build multi-arch + push de tudo
-just push php-fpm         # todas as versões do php-fpm
-just push php-fpm 8.5     # uma imagem/versão específica
-just push all 8.3         # todas as imagens na versão 8.3
-just new 8.6              # cria 8.6/ copiando da versão latest, trocando a versão do PHP
+just info                 # list images, versions and the tags that would be published
+just build php-fpm 8.5    # local multi-arch build (amd64 + arm64) for testing
+just push                 # multi-arch build + push of everything
+just push php-fpm         # every php-fpm version
+just push php-fpm 8.5     # a single image/version
+just push all 8.3         # every image at version 8.3
+just new 8.6              # create 8.6/ by copying the latest version and replacing the PHP version
 ```
 
-`build` gera amd64 e arm64 e carrega as duas no Docker local, sem publicar. Isso
-exige o containerd image store do Docker e, num host x86_64, emulação arm64 via
-QEMU (no Fedora: `sudo dnf install qemu-user-static`). A parte emulada é lenta.
+`build` produces amd64 and arm64 and loads both into the local Docker, without
+publishing. This requires Docker's containerd image store and, on an x86_64 host,
+arm64 emulation through QEMU (on Fedora: `sudo dnf install qemu-user-static`). The
+emulated part is slow.
 
-Cada alvo é validado antes de rodar: a pasta precisa existir e o `Dockerfile`
-precisa instalar a versão do PHP que o nome da pasta declara.
+Every target is validated before running: the directory must exist and its
+`Dockerfile` must install the PHP version that the directory name declares.
 
-O `push` exige ainda que a working tree esteja limpa, para não publicar uma tag a
-partir de código não commitado — use `just dirty=1 push ...` para ignorar. O `build`
-não tem essa exigência, justamente para testar mudanças antes de commitar.
+`push` also requires a clean working tree, so a tag is never published from
+uncommitted code. Use `just dirty=1 push ...` to skip this check. `build` has no
+such requirement, so you can test changes before committing them.
 
-## Publicação pelo GitHub Actions
+## Publishing with GitHub Actions
 
-O workflow [`publish.yml`](.github/workflows/publish.yml) builda cada imagem em
-runners nativos (amd64 e arm64, sem emulação) e publica o manifest multi-arch com as
-mesmas tags do `just push`. Imagens, versões e `latest` vêm do `justfile` e das
-pastas, então não há nada para atualizar no workflow ao criar uma versão nova.
+The [`publish.yml`](.github/workflows/publish.yml) workflow builds each image on
+native runners (amd64 and arm64, no emulation) and publishes the multi-arch
+manifest with the same tags as `just push`. Images, versions and `latest` are read
+from the `justfile` and the directories, so the workflow needs no changes when you
+add a version.
 
-| Evento | O que faz |
+| Event | What it does |
 | --- | --- |
-| push no `main` | publica só as pastas de versão alteradas; mudança no `justfile` ou no workflow publica tudo |
-| pull request | só builda, não publica |
-| toda segunda, 06:00 UTC | rebuilda e publica tudo sem cache, para pegar atualizações de segurança |
-| manual (*Run workflow*) | igual ao `just push [imagem] [versão]`, com opção de ignorar o cache |
+| push to `main` | publishes only the changed version directories; a change to the `justfile` or the workflow publishes everything |
+| pull request | builds only, does not publish |
+| every Monday, 06:00 UTC | rebuilds and publishes everything without cache, to pick up security updates |
+| manual (*Run workflow*) | same as `just push [image] [version]`, with an option to skip the cache |
 
-Mudanças só em `*.md` e em `example/` não disparam build.
+Changes that only touch `*.md` files or `example/` do not trigger a build.
 
-O workflow precisa dos secrets `DOCKERHUB_USERNAME` e `DOCKERHUB_TOKEN` (um access
-token do Docker Hub com permissão de escrita).
+The workflow needs the `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets (a Docker
+Hub access token with write permission).

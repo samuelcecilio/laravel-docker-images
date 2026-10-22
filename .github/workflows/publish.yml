@@ -1,13 +1,13 @@
 name: publish
 
-# Builda cada imagem/versão em runners nativos (amd64 e arm64), publica por digest
-# e junta os dois num manifest multi-arch com as tags do justfile.
+# Builds each image/version on native runners (amd64 and arm64), pushes by digest
+# and merges both into a multi-arch manifest with the tags from the justfile.
 #
-# - push no main: rebuilda só as pastas de versão alteradas (ou tudo, se mudou
-#   o justfile, o workflow etc.)
-# - pull request: só builda, não publica
-# - schedule: rebuild semanal de tudo, sem cache, para pegar patches de segurança
-# - workflow_dispatch: equivalente ao `just push [imagem] [versão]`
+# - push to main: rebuilds only the changed version directories (or everything,
+#   if the justfile, the workflow etc. changed)
+# - pull request: builds only, does not publish
+# - schedule: weekly rebuild of everything, without cache, to pick up security patches
+# - workflow_dispatch: same as `just push [image] [version]`
 
 on:
   push:
@@ -19,13 +19,13 @@ on:
   workflow_dispatch:
     inputs:
       image:
-        description: "Imagem (php-fpm, swoole ou all)"
+        description: "Image (php-fpm, swoole or all)"
         default: all
       version:
-        description: "Versão do PHP (ex: 8.5, ou all)"
+        description: "PHP version (e.g. 8.5, or all)"
         default: all
       no_cache:
-        description: "Buildar sem cache"
+        description: "Build without cache"
         type: boolean
         default: false
 
@@ -33,7 +33,7 @@ permissions:
   contents: read
 
 concurrency:
-  # PRs cancelam o run anterior; publicações nunca são canceladas
+  # PRs cancel the previous run; publishing runs are never cancelled
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: true
 
@@ -52,7 +52,7 @@ jobs:
         with:
           tool: just
 
-      # Lista os alvos {image, version, tags} a partir do justfile e das pastas
+      # List the {image, version, tags} targets from the justfile and the directories
       - id: targets
         env:
           EVENT: ${{ github.event_name }}
@@ -65,8 +65,8 @@ jobs:
           registry=$(just --evaluate registry)
           images=$(just --evaluate images)
 
-          # Em push/PR, só o que mudou. Mudança fora das pastas de versão
-          # (justfile, workflow...) rebuilda tudo; docs e o example não contam.
+          # On push/PR, only what changed. A change outside the version directories
+          # (justfile, workflow...) rebuilds everything; docs and example/ do not count.
           full=1
           changed=""
           base=""
@@ -83,7 +83,7 @@ jobs:
               elif [[ "$f" == *.md || "$f" == */example/* || "$f" == .editorconfig || "$f" == .gitignore ]]; then
                 :
               else
-                echo "$f mudou, rebuildando tudo"
+                echo "$f changed, rebuilding everything"
                 full=1
               fi
             done < <(git diff --name-only "$base" "$GITHUB_SHA")
@@ -103,7 +103,7 @@ jobs:
           done
 
           if [ "$EVENT" = workflow_dispatch ] && [ "$targets" = '[]' ]; then
-            echo "erro: nenhum alvo para image=$WANT_IMAGE version=$WANT_VERSION" >&2
+            echo "error: no targets for image=$WANT_IMAGE version=$WANT_VERSION" >&2
             exit 1
           fi
 
