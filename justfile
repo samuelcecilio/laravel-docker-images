@@ -29,15 +29,15 @@ info:
         done
     done
 
-# Build local (arquitetura do host) para testar. Sem args, builda tudo
+# Build local multi-arch (amd64 + arm64) para testar, sem publicar. Sem args, builda tudo
 build image="all" version="all":
     #!/usr/bin/env bash
     set -euo pipefail
     for img in $(just _targets {{image}}); do
         for v in $(just _versions "$img" {{version}}); do
             just _guard "$img" "$v"
-            echo "==> build local {{registry}}/$img:$v"
-            docker buildx build --load $(just _tag_args "$img" "$v") "$img/$v"
+            echo "==> build local {{registry}}/$img:$v [{{platforms}}]"
+            docker buildx build --platform {{platforms}} --load $(just _tag_args "$img" "$v") "$img/$v"
         done
     done
 
