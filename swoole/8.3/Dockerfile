@@ -2,7 +2,7 @@ FROM ubuntu:22.04 as base
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update -yqq && apt-get install -y \
+RUN apt-get update -yqq && apt-get upgrade -y && apt-get install -y \
     ca-certificates curl dnsutils fswatch git gnupg gosu htop libcap2-bin \
     mysql-client sudo supervisor unzip zip
 
