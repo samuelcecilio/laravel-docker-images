@@ -12,8 +12,8 @@ swoole/
   8.3/  8.4/  8.5/
 ```
 
-Each version directory is independent: `8.3` runs on `ubuntu:22.04`, the others on
-`ubuntu:24.04`. Updating one version never affects the others.
+Each version directory is independent and runs on `ubuntu:24.04`. Updating one
+version never affects the others.
 
 ## Published tags
 
